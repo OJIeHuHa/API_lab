@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,10 +12,19 @@ from .serializers import UserSerializer, TaskSerializer
 
 User = get_user_model()
 
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+
+    def enforce_csrf(self, request):
+        return  # To not perform the csrf check previously happening
+
+
 
 @extend_schema(request=UserSerializer, responses={201: UserSerializer, 400: str})
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@authentication_classes([CsrfExemptSessionAuthentication, BasicAuthentication])
 def register(request):
     data = request.data
     serializer = UserSerializer(data=data)
@@ -25,9 +34,12 @@ def register(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
 @extend_schema(request=UserSerializer, responses={200: str, 401: str})
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@authentication_classes([CsrfExemptSessionAuthentication, BasicAuthentication])
 def log_in(request):
     data = request.data
     user = authenticate(request, username=data.get('username'), password=data.get('password'))
@@ -37,9 +49,12 @@ def log_in(request):
     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+
+
 @extend_schema(responses={200: str})
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication, BasicAuthentication])
 def log_out(request):
     logout(request)
     return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
@@ -67,6 +82,7 @@ def about(request):
 @extend_schema(request=TaskSerializer, responses={201: TaskSerializer, 400: str})
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication, BasicAuthentication])
 def create_task(request):
     data = request.data
     serializer = TaskSerializer(data=data, context={'request': request})
@@ -88,6 +104,7 @@ def list_tasks(request):
 @extend_schema(request=TaskSerializer, responses={200: TaskSerializer, 404: str})
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication, BasicAuthentication])
 def update_task(request, task_id):
     try:
         task = Task.objects.get(id=task_id, user=request.user)
@@ -104,6 +121,7 @@ def update_task(request, task_id):
 @extend_schema(responses={200: str, 404: str})
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication, BasicAuthentication])
 def delete_task(request, task_id):
     try:
         task = Task.objects.get(id=task_id, user=request.user)
