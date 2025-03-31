@@ -1,14 +1,23 @@
-from django.urls import path
-from .views import register, log_in, log_out, profile, about, create_task, list_tasks, update_task, delete_task
-urlpatterns = [
-    path('register/', register),
-    path('login/', log_in),
-    path('logout/', log_out),
-    path('profile/', profile),
-    path('about/', about),
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    RegisterView, LoginView, LogoutView, ProfileView, AboutView,
+    TaskViewSet, TaskDetailPageView, AddUserToTaskView, TaskListView,
+    OnlineUsersView,
+)
 
-    path('create/', create_task),
-    path('show/', list_tasks),
-    path("update/<int:task_id>/", update_task, name="update_task"),
-    path("delete/<int:task_id>/", delete_task, name="delete_task"),
+router = DefaultRouter()
+router.register(r'tasks', TaskViewSet, basename='task')
+
+urlpatterns = [
+    path('register/', RegisterView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('profile/', ProfileView.as_view(), name='profile'),
+    path('about/', AboutView.as_view(), name='about'),
+    path('show/', TaskListView.as_view(), name='task_list'),
+    path('task/<int:task_id>/', TaskDetailPageView.as_view(), name='task_detail_page'),
+    path('task/<int:task_id>/add_user/', AddUserToTaskView.as_view(), name='add_user_to_task'),
+    path('api/', include(router.urls)),
+    path('online_users/', OnlineUsersView.as_view(), name='online_users'),
 ]

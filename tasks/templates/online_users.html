@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Online Users</title>
+</head>
+<body>
+    <h1>Currently Online Users</h1>
+    <ul>
+        {% if online_users %}
+            {% for user in online_users %}
+                <li>{{ user.username }}</li>
+            {% endfor %}
+        {% else %}
+            <li>No users are currently online.</li>
+        {% endif %}
+    </ul>
+</body>
+</html>

@@ -12,7 +12,7 @@ class CustomUser(AbstractUser):
     date_of_birth = models.DateField(null=True, blank=True)
 
 class Task(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Use the custom user model
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='tasks')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     completed = models.BooleanField(default=False)
